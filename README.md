@@ -7,4 +7,4 @@ CURRENT GOAL:
   Make it accurate with some basic tricks Ollie, Pop Shuv, and Kickflip
 
 FUTURE GOALS:
-  Expand to a lot more tricks that more complex to classify
+  Expand to a lot more tricks that are more complex to classify
