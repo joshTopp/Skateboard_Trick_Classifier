@@ -11,7 +11,7 @@ def main():
     cap = cv2.VideoCapture("videos/video.mp4")
     frame_count = 0
     while cap.isOpened():
-        if frame_count % 2 == 0:
+        if frame_count % 4 == 0:
             ret, frame = cap.read()
             if not ret:
                 break
