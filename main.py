@@ -28,8 +28,8 @@ def main():
                     ret, frame = cap.read()
                     if not ret:
                         break
-                    board_results = box_model.predict(frame, conf=0.3, classes=[36])[0]
-                    pose_results = pose_model.predict(frame, conf=0.5)[0]
+                    board_results = box_model.predict(frame, conf=0.3, classes=[36], max_det=1)[0]
+                    pose_results = pose_model.predict(frame, conf=0.5, classes=[0], max_det=1)[0]
 
                     # FOR TESTING _____________________________________
                     annotated_frame = board_results.plot()
@@ -45,32 +45,52 @@ def main():
 
                     if len(board_results.boxes ) > 0:
                         #get the multiplier of the board results multiply it with the height and width print it
-                        board_x, board_y, board_x2, board_y2 = board_results.boxes.xyxy[0]
-                        board_x = max(0, int(board_x.item()))
-                        board_y = max(0, int(board_y.item()))
-                        board_x2 = min(img_width, int(board_x2.item()))
-                        board_y2 = min(img_height, int(board_y2.item()))
-                        print(f"board: {board_x}, {board_y}, {board_x2}, {board_y2}")
-                        #cv2.imshow("Frame", frame[board_y:board_y2, board_x:board_x2])
-                        skateboard_frames.append(frame[board_y:board_y2, board_x:board_x2])
+                        revised_frame = get_boarding_boxes(board_results, img_width, img_height, frame)
+                        #cv2.imshow("Frame", revised_frame)
+                        skateboard_frames.append(revised_frame)
 
                     #if len(pose_results.boxes ) > 0:
                         # #same thing but with the pose results
-                        # human_x, human_y, human_x2, human_y2 = pose_results.boxes.xyxy[0]
-                        # human_x = max(0, int(human_x.item()))
-                        # human_y = max(0, int(human_y.item()))
-                        # human_x2 = min(img_width, int(human_x2.item()))
-                        # human_y2 = min(img_height, int(human_y2.item()))
-                        # print(f"human: {human_x}, {human_y}, {human_x2}, {human_y2}")
-                        # cv2.imshow("Frame", annotated_frame2[human_y:human_y2, human_x:human_x2])
-                        # human_frames.append(frame[human_y:human_y2, human_x:human_x2])
+                        #revised_frame = get_boarding_boxes(pose_results, img_width, img_height, frame)
+                        #human_frames.append(revised_frame)
 
                 frame_count += 1
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
+
             dict[video_count]["skateboard"] = skateboard_frames
             #dict[video_count]["human"] = human_frames
             dict[video_count]["label"] = video_filename
             video_count+=1
+
+
+def get_boarding_boxes(results, img_width, img_height, frame):
+    box_x, box_y, box_x2, box_y2 = results.boxes.xyxy[0]
+    box_x = max(0, int(box_x.item()))
+    box_y = max(0, int(box_y.item()))
+    box_x2 = min(img_width, int(box_x2.item()))
+    box_y2 = min(img_height, int(box_y2.item()))
+    print(f"Boarding box: {box_x}, {box_y}, {box_x2}, {box_y2}")
+    # cv2.imshow("Frame", frame[board_y:board_y2, board_x:board_x2])
+    return resize_frame(frame[box_y:box_y2, box_x:box_x2], box_x, box_y, box_x2, box_y2)
+
+
+#resizes by 224x224 and adds padding so it doesn't make the board seems expanded or shrunken
+def resize_frame(frame, box_x, box_y, box_x2, box_y2):
+    length = box_x2 - box_x
+    width = box_y2- box_y
+    # im trying to get the image to be 224x224 universally for every frame might change for human change though
+    if length > width:
+        multiplier = 224/length
+    else:
+        multiplier = 224/width
+
+    resized_frame = cv2.resize(frame, (length*multiplier, width*multiplier))
+    resized_frame = cv2.copyMakeBorder(resized_frame, top=int((224-width)/2), bottom=int((224-width)/2),
+                                       right=int((224-length)/2), left=int((224-length)/2), value=(0,0,0),
+                                       borderType=cv2.BORDER_CONSTANT)
+    return resized_frame
+
+
 if __name__ == "__main__":
     main()
