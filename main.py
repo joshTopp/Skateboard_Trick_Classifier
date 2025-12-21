@@ -12,14 +12,13 @@ def main():
     video_count = 1
     dict= {}
     for video_filename in os.listdir("test"):
-        print(video_filename)
-        dict[video_count]= {}
-        dict[video_count]["skateboard"] = []
-        #dict[video_count]["human"] = []
-        dict[video_count]["label"] = None
         skateboard_frames = []
         #human_frames = []
         for video in os.listdir("test/"+video_filename):
+            dict[video_count] = {}
+            dict[video_count]["skateboard"] = []
+            # dict[video_count]["human"] = []
+            dict[video_count]["label"] = None
             cap = cv2.VideoCapture("test/"+video_filename+"/"+video)
             frame_count = 0
             while cap.isOpened():
@@ -46,7 +45,7 @@ def main():
                     if len(board_results.boxes ) > 0:
                         #get the multiplier of the board results multiply it with the width and height print it
                         revised_frame = get_boarding_boxes(board_results, img_height, img_length, frame)
-                        #cv2.imshow("Frame", revised_frame)
+                        cv2.imshow("Frame", revised_frame)
                         skateboard_frames.append(revised_frame)
 
                     #if len(pose_results.boxes ) > 0:
@@ -70,32 +69,31 @@ def get_boarding_boxes(results, img_height, img_length, frame):
     box_y = max(0, int(box_y.item()))
     box_x2 = min(img_height, int(box_x2.item()))
     box_y2 = min(img_length, int(box_y2.item()))
-    print(f"Boarding box: {box_x}, {box_y}, {box_x2}, {box_y2}")
-    # cv2.imshow("Frame", frame[board_y:board_y2, board_x:board_x2])
+    #  (f"Boarding box: {box_x}, {box_y}, {box_x2}, {box_y2}")
+    # cv2.imshow("Frame", frame[box_y:box_y2, box_x:box_x2])
     return resize_frame(frame[box_y:box_y2, box_x:box_x2], box_x, box_y, box_x2, box_y2)
 
 
 #resizes by 224x224 and adds padding so it doesn't make the board seems expanded or shrunken
-def resize_frame(box_frame, box_x, box_y, box_x2, box_y2):
+def resize_frame(box_frame, box_x, box_y, box_x2, box_y2, dimensions=224):
     width = box_x2 - box_x
     height = box_y2- box_y
     # im trying to get the image to be 224x224 universally for every frame might change for human resize though
     if width > height:
-        multiplier = 224/width
+        multiplier = dimensions/width
     else:
-        multiplier = 224/height
+        multiplier = dimensions/height
 
     width = int(width * multiplier)
     height = int(height * multiplier)
-    top = (224 - height) // 2
-    bottom = (224 - height) // 2
-    right = (224 - width) // 2
-    left = (224 - width) // 2
-    if top + bottom + height != 224:
+    top = (dimensions - height) // 2
+    bottom = top
+    left = (dimensions - width) // 2
+    right = left
+    if top + bottom + height != dimensions:
         bottom+=1
-    if left + right + width != 224:
+    if left + right + width != dimensions:
         right+=1
-
     resized_frame = cv2.resize(box_frame, (width, height))
     resized_frame = cv2.copyMakeBorder(resized_frame, top=top, bottom=bottom,
                                        right=right, left=left, value=(0,0,0),

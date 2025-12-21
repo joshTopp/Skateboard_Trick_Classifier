@@ -17,7 +17,7 @@ class Net(nn.Module):
     def __init__(self, num_classes=4):
         super().__init__()
         self.features = nn.Sequential(
-            nn.Conv2d(512, 256, kernel_size=(3,3), stride=(1,1), padding=(1,1)),
+            nn.Conv2d(32, 256, kernel_size=(3,3), stride=(1,1), padding=(1,1)),
             nn.ELU(),
             nn.Conv2d(256, 128, kernel_size=(3,3), stride=(1,1), padding=(1,1)),
             nn.ELU(),
