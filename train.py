@@ -1,3 +1,8 @@
+
+#use this instead of creating a CNN by myself would need tons of data
+#ImageNet/Kinetics
+
+
 import torch
 from matplotlib import pyplot as plt
 from torch import nn

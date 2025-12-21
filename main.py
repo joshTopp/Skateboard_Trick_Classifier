@@ -11,18 +11,19 @@ def main():
     #seg_model = YOLO("yolo11n-seg.pt")
     video_count = 1
     dict= {}
-    for video_filename in os.listdir("test"):
-        skateboard_frames = []
-        #human_frames = []
-        for video in os.listdir("test/"+video_filename):
+    for video_filename in os.listdir("videos"):
+        print("hello")
+        for video in os.listdir("videos/"+video_filename):
+            print("hello")
             dict[video_count] = {}
             dict[video_count]["skateboard"] = []
             # dict[video_count]["human"] = []
             dict[video_count]["label"] = None
-            cap = cv2.VideoCapture("test/"+video_filename+"/"+video)
+            skateboard_frames = []
+            # human_frames = []
+            cap = cv2.VideoCapture("videos/"+video_filename+"/"+video)
             frame_count = 0
             while cap.isOpened():
-
                 if frame_count % 4 == 0:
                     ret, frame = cap.read()
                     if not ret:
@@ -31,10 +32,10 @@ def main():
                     pose_results = pose_model.predict(frame, conf=0.5, classes=[0], max_det=1)[0]
 
                     # FOR TESTING _____________________________________
-                    #annotated_frame = board_results.plot()
-                    #annotated_frame2 = pose_results.plot()
-                    #combined_frame = cv2.addWeighted(annotated_frame, 0.5, annotated_frame2, 0.5, 0 )
-                    #cv2.imshow("YOLO Detection", combined_frame)
+                    annotated_frame = board_results.plot()
+                    annotated_frame2 = pose_results.plot()
+                    combined_frame = cv2.addWeighted(annotated_frame, 0.5, annotated_frame2, 0.5, 0 )
+                    cv2.imshow("YOLO Detection", combined_frame)
                     #cv2.imshow("Frame", annotated_frame)
                     #cv2.imshow("Frame", annotated_frame2)
                     # __________________________________________________
@@ -45,7 +46,7 @@ def main():
                     if len(board_results.boxes ) > 0:
                         #get the multiplier of the board results multiply it with the width and height print it
                         revised_frame = get_boarding_boxes(board_results, img_height, img_length, frame)
-                        cv2.imshow("Frame", revised_frame)
+                        #cv2.imshow("Frame", revised_frame)
                         skateboard_frames.append(revised_frame)
 
                     #if len(pose_results.boxes ) > 0:
@@ -60,8 +61,10 @@ def main():
             dict[video_count]["skateboard"] = skateboard_frames
             #dict[video_count]["human"] = human_frames
             dict[video_count]["label"] = video_filename
+            dict[video_count]["num_frames"] = len(skateboard_frames)
             video_count+=1
-
+    for key, video in dict.items():
+        print(f"Video {key} has {video['num_frames']} frames.")
 
 def get_boarding_boxes(results, img_height, img_length, frame):
     box_x, box_y, box_x2, box_y2 = results.boxes.xyxy[0]
