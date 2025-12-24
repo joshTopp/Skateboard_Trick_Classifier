@@ -1,28 +1,28 @@
 import os
 import cv2
 import numpy as np
-from torchvision import transforms
 from ultralytics import YOLO
-from transformers import VivitImageProcessor, VivitForVideoClassification
 import torch
-from torchvision.models import resnet18
+import neuralnet as net
+from train import Train
+from sklearn.model_selection import train_test_split
 
 def main():
     box_model = YOLO("yolo11n.pt")
     pose_model = YOLO("yolo11n-pose.pt")
     #seg_model = YOLO("yolo11n-seg.pt")
     video_count = 1
-    dict= {}
+    dict_frames= {}
     for video_filename in os.listdir("videos"):
         print("hello")
         for video in os.listdir("videos/"+video_filename):
             print("hello")
-            dict[video_count] = {}
-            dict[video_count]["skateboard"] = []
-            # dict[video_count]["human"] = []
-            dict[video_count]["label"] = None
+            dict_frames[video_count] = {}
+            dict_frames[video_count]["skateboard"] = []
+            # dict_frames[video_count]["human"] = []
+            dict_frames[video_count]["label"] = None
             skateboard_frames = []
-            #human_frames = []
+            # human_frames = []
             cap = cv2.VideoCapture("videos/"+video_filename+"/"+video)
             frame_count = 0
             while cap.isOpened():
@@ -34,12 +34,12 @@ def main():
                     pose_results = pose_model.predict(frame, conf=0.5, classes=[0], max_det=1)[0]
 
                     # FOR TESTING _____________________________________
-                    annotated_frame = board_results.plot()
-                    annotated_frame2 = pose_results.plot()
-                    combined_frame = cv2.addWeighted(annotated_frame, 0.5, annotated_frame2, 0.5, 0 )
-                    cv2.imshow("YOLO Detection", combined_frame)
-                    #cv2.imshow("Frame", annotated_frame)
-                    #cv2.imshow("Frame", annotated_frame2)
+                    # annotated_frame = board_results.plot()
+                    # annotated_frame2 = pose_results.plot()
+                    # combined_frame = cv2.addWeighted(annotated_frame, 0.5, annotated_frame2, 0.5, 0 )
+                    # cv2.imshow("YOLO Detection", combined_frame)
+                    # cv2.imshow("Frame", annotated_frame)
+                    # cv2.imshow("Frame", annotated_frame2)
                     # __________________________________________________
 
                     # # this will for boxing to give to the Temporal CNN and ViViT
@@ -58,28 +58,38 @@ def main():
                         # elif human_revised_frame is not None:
                         #     human_frames.append(human_revised_frame)
                         # else:
-                        #     blank_frame = np.zeros(shape=[224,224], dtype=np.uint8)
+                        #     blank_frame = np.zeros(shape=[224,224,3], dtype=np.uint8)
                         #     human_frames.append(blank_frame)
-
 
                 frame_count += 1
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
 
-            dict[video_count]["skateboard"] = skateboard_frames
-            #dict[video_count]["human"] = human_frames
-            dict[video_count]["label"] = video_filename
-            dict[video_count]["num_frames"] = len(skateboard_frames)
+            dict_frames[video_count]["skateboard"] = skateboard_frames
+            #dict_frames[video_count]["human"] = human_frames
+            dict_frames[video_count]["label"] = video_filename
+            dict_frames[video_count]["num_frames"] = len(skateboard_frames)
             video_count+=1
-    for key, video in dict.items():
-        print(f"Video {key} has {video['num_frames']} frames.")
+
+    videos = list(dict_frames.keys())
+    labels = [dict_frames[video]["label"] for video in videos]
+
+    train_indices, test_indices = train_test_split(videos, test_size=0.2, stratify=labels, random_state=42)
+    train_clips, train_labels = send_to_neural(dict_frames, train_indices)
+    trainer = Train(train_clips, train_labels)
+    trainer.training(epochs=20)
+
+    test_clips, test_labels = send_to_neural(dict_frames, test_indices)
+    trainer.list_clips = test_clips
+    trainer.list_labels = test_labels
+    trainer.test()
 
 def get_boarding_boxes(results, img_height, img_length, frame):
     box_x, box_y, box_x2, box_y2 = results.boxes.xyxy[0]
     box_x = max(0, int(box_x.item()))
     box_y = max(0, int(box_y.item()))
-    box_x2 = min(img_height, int(box_x2.item()))
-    box_y2 = min(img_length, int(box_y2.item()))
+    box_x2 = min(img_length, int(box_x2.item()))
+    box_y2 = min(img_height, int(box_y2.item()))
     #  (f"Boarding box: {box_x}, {box_y}, {box_x2}, {box_y2}")
     # cv2.imshow("Frame", frame[box_y:box_y2, box_x:box_x2])
     return resize_frame(frame[box_y:box_y2, box_x:box_x2], box_x, box_y, box_x2, box_y2)
@@ -89,6 +99,9 @@ def get_boarding_boxes(results, img_height, img_length, frame):
 def resize_frame(box_frame, box_x, box_y, box_x2, box_y2, dimensions=224):
     width = box_x2 - box_x
     height = box_y2- box_y
+
+    if width <= 0 or height <= 0 or box_frame.size == 0:
+        return np.zeros((dimensions, dimensions, 3), dtype=np.uint8)
     # im trying to get the image to be 224x224 universally for every frame might change for human resize though
     if width > height:
         multiplier = dimensions/width
@@ -110,6 +123,26 @@ def resize_frame(box_frame, box_x, box_y, box_x2, box_y2, dimensions=224):
                                        right=right, left=left, value=(0,0,0),
                                        borderType=cv2.BORDER_CONSTANT)
     return resized_frame
+
+def send_to_neural(dict_frames, indices):
+    label_dict = {"kickflip": 0, "ollie": 1, "popshuv": 2}
+    labels = []
+    clips = []
+    for video_index in indices:
+        label = label_dict[dict_frames[video_index]["label"]]
+        frame_list = dict_frames[video_index]["skateboard"]
+        for begin_index in range(0, len(frame_list) - 33 ,24):
+            send_frames = frame_list[begin_index:begin_index + 32]
+            list_clip = np.array(send_frames)
+            list_clip = torch.tensor(list_clip)
+            list_clip = list_clip.permute(0, 3, 1, 2).unsqueeze(0)
+            clips.append(list_clip)
+            labels.append(label)
+
+    batch_clips = torch.cat(clips, dim=0)
+    tensor_labels = torch.tensor(labels)
+
+    return batch_clips, tensor_labels
 
 
 if __name__ == "__main__":
