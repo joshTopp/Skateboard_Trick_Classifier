@@ -24,8 +24,8 @@ An end-to-end computer vision pipeline for classification of skateboard tricks u
 -----
 
 ## Dataset
-Training data consists of short video clips extracted from publicly available skateboarding videos(mostly from Youtube) The dataset includes ollie, pop shuvit, and kickflip examples(for now).
+Training data consists of short video clips extracted from publicly available skateboarding videos (mostly from Youtube). The dataset includes ollie, pop shuvit, and kickflip examples.
 
 The video clips are not distributed by me due to copyright considerations and ethical use. I'm developing this project with respect to privacy and ethical data use. This model solely classifies the trick rather than recognizing people.
 
-Any sample media that is included, if applicable, will be recorded by the author of the author.
+Any sample media that is included, if applicable, will be recorded by the author.

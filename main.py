@@ -1,9 +1,11 @@
 import os
 import cv2
 import numpy as np
+from torchvision import transforms
 from ultralytics import YOLO
 from transformers import VivitImageProcessor, VivitForVideoClassification
 import torch
+from torchvision.models import resnet18
 
 def main():
     box_model = YOLO("yolo11n.pt")
@@ -20,7 +22,7 @@ def main():
             # dict[video_count]["human"] = []
             dict[video_count]["label"] = None
             skateboard_frames = []
-            # human_frames = []
+            #human_frames = []
             cap = cv2.VideoCapture("videos/"+video_filename+"/"+video)
             frame_count = 0
             while cap.isOpened():
@@ -49,10 +51,16 @@ def main():
                         #cv2.imshow("Frame", revised_frame)
                         skateboard_frames.append(revised_frame)
 
-                    #if len(pose_results.boxes ) > 0:
-                        # #same thing but with the pose results
-                        #revised_frame = get_boarding_boxes(pose_results, img_height, img_length, frame)
-                        #human_frames.append(revised_frame)
+                        # if len(pose_results.boxes ) > 0:
+                        #     #same thing but with the pose results
+                        #     human_revised_frame = get_boarding_boxes(pose_results, img_height, img_length, frame)
+                        #     human_frames.append(human_revised_frame)
+                        # elif human_revised_frame is not None:
+                        #     human_frames.append(human_revised_frame)
+                        # else:
+                        #     blank_frame = np.zeros(shape=[224,224], dtype=np.uint8)
+                        #     human_frames.append(blank_frame)
+
 
                 frame_count += 1
                 if cv2.waitKey(1) & 0xFF == ord("q"):
