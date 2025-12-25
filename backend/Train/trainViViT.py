@@ -5,10 +5,9 @@ from torch.utils.data import DataLoader
 from torchmetrics import Precision, Accuracy, Recall, F1Score
 import torch.optim as optim
 from torchvision import transforms
-import neuralnet as net
-from transformers import VivitImageProcessor, VivitForVideoClassification
+from backend.NeuralNetworks import ViViT as net
 
-from SkateData import SkateData
+from backend.SkateData import SkateData
 
 metric_precision = Precision(task="multiclass", num_classes=3, average="macro")
 metric_accuracy = Accuracy(task="multiclass", num_classes=3, average="macro")
@@ -16,11 +15,10 @@ metric_recall = Recall(task="multiclass", num_classes=3, average="macro")
 metric_f1 = F1Score(task="multiclass", num_classes=3, average="macro")
 
 
-class Train:
+class TrainViViT:
     def __init__(self, list_clips, list_labels):
         self.list_clips = list_clips
         self.list_labels = list_labels
-        #self.dataset_train = list_clips
         self.model = net.Net()
 
 
@@ -55,7 +53,7 @@ class Train:
                 epoch_loss += loss.item()
             epoch_loss /= len(dataloader_train)
             print(f"Training loss: {epoch_loss}")
-        torch.save(self.model.state_dict(), "skateboard_model.pt")
+        torch.save(self.model.state_dict(), "skateboard_model1.pt")
 
 
     def test(self):

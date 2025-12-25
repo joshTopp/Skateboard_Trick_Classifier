@@ -3,8 +3,7 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 import torch
-import neuralnet as net
-from train import Train
+from Train.train import Train
 from sklearn.model_selection import train_test_split
 
 def main():
@@ -13,9 +12,8 @@ def main():
     #seg_model = YOLO("yolo11n-seg.pt")
     video_count = 1
     dict_frames= {}
-    for video_filename in os.listdir("videos"):
-        print("hello")
-        for video in os.listdir("videos/"+video_filename):
+    for video_filename in os.listdir("backend/videos"):
+        for video in os.listdir("backend/videos/"+video_filename):
             print("hello")
             dict_frames[video_count] = {}
             dict_frames[video_count]["skateboard"] = []
@@ -23,7 +21,7 @@ def main():
             dict_frames[video_count]["label"] = None
             skateboard_frames = []
             # human_frames = []
-            cap = cv2.VideoCapture("videos/"+video_filename+"/"+video)
+            cap = cv2.VideoCapture("backend/videos/"+video_filename+"/"+video)
             frame_count = 0
             while cap.isOpened():
                 if frame_count % 4 == 0:
