@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from torchmetrics import Precision, Accuracy, Recall, F1Score
 import torch.optim as optim
 from torchvision import transforms
-from backend.NeuralNetworks import ViViT as net
+from backend.NeuralNetworks import ViViT as transformerNet
 
 from backend.SkateData import SkateData
 
@@ -19,7 +19,7 @@ class TrainViViT:
     def __init__(self, list_clips, list_labels):
         self.list_clips = list_clips
         self.list_labels = list_labels
-        self.model = net.Net()
+        self.model = transformerNet.ViViTNet()
 
 
 

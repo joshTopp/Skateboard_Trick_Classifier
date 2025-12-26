@@ -1,9 +1,9 @@
 from torch import nn
 from transformers import VivitImageProcessor, VivitForVideoClassification
 
-class Net(nn.Module):
+class ViViTNet(nn.Module):
     def __init__(self, num_classes=3):
-        super(Net, self).__init__()
+        super(ViViTNet, self).__init__()
         self.model = VivitForVideoClassification.from_pretrained('google/vivit-b-16x2-kinetics400')
         self.model.fc = nn.Linear(self.model.fc.in_features, num_classes)
 

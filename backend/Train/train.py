@@ -19,7 +19,6 @@ class Train:
     def __init__(self, list_clips, list_labels):
         self.list_clips = list_clips
         self.list_labels = list_labels
-        #self.dataset_train = list_clips
         self.model = net.Net()
 
 
