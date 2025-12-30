@@ -34,7 +34,7 @@ class TrainViViT:
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
         dataset_train = SkateData(self.list_clips, self.list_labels, transform=train_transforms)
-        dataloader_train = DataLoader(dataset_train, batch_size=2, shuffle=True)
+        dataloader_train = DataLoader(dataset_train, batch_size=1, shuffle=True)
 
         image, labels = next(iter(dataloader_train))
         plt.imshow(image[0, 0].permute(1, 2, 0))
@@ -53,7 +53,7 @@ class TrainViViT:
                 epoch_loss += loss.item()
             epoch_loss /= len(dataloader_train)
             print(f"Training loss: {epoch_loss}")
-        torch.save(self.model.state_dict(), "skateboard_model1.pt")
+        torch.save(self.model.state_dict(), "vivit_model.pt")
 
 
     def test(self):
@@ -64,7 +64,13 @@ class TrainViViT:
         ])
         self.model.eval()
         dataset_test = SkateData(self.list_clips, self.list_labels, transform=test_transforms)
-        dataloader_test = DataLoader(dataset_test, batch_size=2, shuffle=True)
+        dataloader_test = DataLoader(dataset_test, batch_size=1, shuffle=True)
+
+        metric_precision.reset()
+        metric_accuracy.reset()
+        metric_recall.reset()
+        metric_f1.reset()
+
         with torch.no_grad():
             for image, labels in dataloader_test:
                 outputs = self.model(image)
@@ -83,5 +89,3 @@ class TrainViViT:
         print(f"Accuracy: {test_accuracy * 100}%")
         print(f"Recall: {test_recall * 100}%")
         print(f"F1Score: {test_f1 * 100}%")
-
-

@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 import torch
-from Train.train import Train
+from Train.trainViViT import TrainViViT
 from sklearn.model_selection import train_test_split
 
 def main():
@@ -74,7 +74,7 @@ def main():
 
     train_indices, test_indices = train_test_split(videos, test_size=0.2, stratify=labels, random_state=42)
     train_clips, train_labels = send_to_neural(dict_frames, train_indices)
-    trainer = Train(train_clips, train_labels)
+    trainer = TrainViViT(train_clips, train_labels)
     trainer.training(epochs=20)
 
     test_clips, test_labels = send_to_neural(dict_frames, test_indices)

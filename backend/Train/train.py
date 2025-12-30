@@ -65,6 +65,12 @@ class Train:
         self.model.eval()
         dataset_test = SkateData(self.list_clips, self.list_labels, transform=test_transforms)
         dataloader_test = DataLoader(dataset_test, batch_size=2, shuffle=True)
+
+        metric_precision.reset()
+        metric_accuracy.reset()
+        metric_recall.reset()
+        metric_f1.reset()
+
         with torch.no_grad():
             for image, labels in dataloader_test:
                 outputs = self.model(image)
