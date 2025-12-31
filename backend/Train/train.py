@@ -1,19 +1,20 @@
+import numpy as np
 import torch
 from matplotlib import pyplot as plt
 from torch import nn
 from torch.utils.data import DataLoader
-from torchmetrics import Precision, Accuracy, Recall, F1Score
+from torchmetrics import Precision, Accuracy, Recall, F1Score, ConfusionMatrix
 import torch.optim as optim
 from torchvision import transforms
 from backend.NeuralNetworks import neuralnet as net
 
 from backend.SkateData import SkateData
 
-metric_precision = Precision(task="multiclass", num_classes=3, average="macro")
-metric_accuracy = Accuracy(task="multiclass", num_classes=3, average="macro")
-metric_recall = Recall(task="multiclass", num_classes=3, average="macro")
-metric_f1 = F1Score(task="multiclass", num_classes=3, average="macro")
-
+metric_precision = Precision(task="multiclass", num_classes=3, average=None)
+metric_accuracy = Accuracy(task="multiclass", num_classes=3, average=None)
+metric_recall = Recall(task="multiclass", num_classes=3, average=None)
+metric_f1 = F1Score(task="multiclass", num_classes=3, average=None)
+confusion_matrix = ConfusionMatrix(task="multiclass", num_classes=3)
 
 class Train:
     def __init__(self, list_clips, list_labels):
@@ -79,15 +80,38 @@ class Train:
                 metric_accuracy.update(predicted, labels)
                 metric_recall.update(predicted, labels)
                 metric_f1.update(predicted, labels)
+                confusion_matrix.update(predicted, labels)
 
         test_accuracy = metric_accuracy.compute()
         test_recall = metric_recall.compute()
         test_precision = metric_precision.compute()
         test_f1 = metric_f1.compute()
 
-        print(f"Precision: {test_precision * 100}%")
-        print(f"Accuracy: {test_accuracy * 100}%")
-        print(f"Recall: {test_recall * 100}%")
-        print(f"F1Score: {test_f1 * 100}%")
+        print("Accuracy: ", test_accuracy)
+        print("Recall: ", test_recall)
+        print("Precision: ", test_precision)
+        print("F1: ", test_f1)
+
+        # Use after saving .pt weights
+        # classes = ["kickflip", 'ollie', "pop shuv"]
+        # x = np.arange(len(classes))
+        # width = 0.2
+        #
+        # fig, ax = plt.subplots(figsize=(8, 5))
+        #
+        # ax.bar(x - 1.5*width, test_accuracy, width, label='Accuracy')
+        # ax.bar(x - 0.5*width, test_precision, width, label="Precision")
+        # ax.bar(x + 0.5*width, test_recall, width, label="Recall")
+        # ax.bar(x + 1.5*width, test_f1, width, label="F1")
+        # ax.set_xlabel("Classes")
+        # ax.set_ylabel("Percentage")
+        # ax.set_title("Metrics")
+        # ax.set_xticklabels(classes)
+        #
+        # plt.tight_layout()
+        # plt.savefig("metrics.png")
+        #
+        # fig, ax = confusion_matrix.plot()
+        # fig.savefig("confusion_matrix.png", dpi=300, bbox_inches='tight')
 
 

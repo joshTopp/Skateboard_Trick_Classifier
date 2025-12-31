@@ -20,7 +20,7 @@ def main():
             # dict_frames[video_count]["human"] = []
             dict_frames[video_count]["label"] = None
             skateboard_frames = []
-            # human_frames = []
+            human_frames = []
             cap = cv2.VideoCapture("backend/videos/"+video_filename+"/"+video)
             frame_count = 0
             while cap.isOpened():
@@ -128,9 +128,14 @@ def send_to_neural(dict_frames, indices):
     clips = []
     for video_index in indices:
         label = label_dict[dict_frames[video_index]["label"]]
-        frame_list = dict_frames[video_index]["skateboard"]
-        for begin_index in range(0, len(frame_list) - 33 ,24):
-            send_frames = frame_list[begin_index:begin_index + 32]
+        board_list = dict_frames[video_index]["skateboard"]
+        human_list = dict_frames[video_index]["human"]
+        for begin_index in range(0, len(board_list) - 33 ,24):
+            board_frames = board_list[begin_index:begin_index + 32]
+            #human_frames = human_list[begin_index:begin_index + 32]
+
+            send_frames = board_frames
+
             list_clip = np.array(send_frames)
             list_clip = torch.tensor(list_clip)
             list_clip = list_clip.permute(0, 3, 1, 2).unsqueeze(0)
