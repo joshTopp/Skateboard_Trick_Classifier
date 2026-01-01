@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 from torchmetrics import Precision, Accuracy, Recall, F1Score, ConfusionMatrix
 import torch.optim as optim
 from torchvision import transforms
-from backend.NeuralNetworks import neuralnet as net
+from backend.classify import ResNet as net
 
 from backend.SkateData import SkateData
 
@@ -54,7 +54,7 @@ class Train:
                 epoch_loss += loss.item()
             epoch_loss /= len(dataloader_train)
             print(f"Training loss: {epoch_loss}")
-        torch.save(self.model.state_dict(), "skateboard_model.pt")
+        torch.save(self.model.state_dict(), "resnet_model.pt")
 
 
     def test(self):

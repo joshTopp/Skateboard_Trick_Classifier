@@ -55,7 +55,7 @@ Pipeline:
 ## Models Used
 
  - ResNet(frame-based temporal model) 
- - ViVit(Hugging Face video transformer)
+ - ViVit(Hugging Face video transformer) with Frozen Parameters
  - Both pretrained models and fine-tuned on the small dataset.
  - Augmentations: horizontal flip, autocontrast
 

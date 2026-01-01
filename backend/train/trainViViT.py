@@ -5,7 +5,8 @@ from torch.utils.data import DataLoader
 from torchmetrics import Precision, Accuracy, Recall, F1Score
 import torch.optim as optim
 from torchvision import transforms
-from backend.NeuralNetworks import ViViT as transformerNet
+from backend.classify import ViViT as transformerNet
+from transformers import VivitImageProcessor
 
 from backend.SkateData import SkateData
 
@@ -14,40 +15,42 @@ metric_accuracy = Accuracy(task="multiclass", num_classes=3, average="macro")
 metric_recall = Recall(task="multiclass", num_classes=3, average="macro")
 metric_f1 = F1Score(task="multiclass", num_classes=3, average="macro")
 
+def vivit_collate(batch):
+    clips, labels = zip(*batch)
+    return list(clips), torch.tensor(labels)
 
 class TrainViViT:
     def __init__(self, list_clips, list_labels):
         self.list_clips = list_clips
         self.list_labels = list_labels
         self.model = transformerNet.ViViTNet()
-
+        self.processor = VivitImageProcessor.from_pretrained("google/vivit-b-16x2-kinetics400")
+        self.device = torch.device("cpu")
 
 
     def training(self, epochs=5):
-        optimizer = optim.Adam(self.model.parameters(), lr=0.001)
+        optimizer = optim.AdamW([
+            {"params": self.model.classifier.parameters(), "lr": 3e-4},
+            {"params": self.model.model.vivit.encoder.layer[-8:].parameters(), "lr": 1e-4},
+        ],
+        weight_decay=1e-4,)
 
-        train_transforms = transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomAutocontrast(),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ])
-        dataset_train = SkateData(self.list_clips, self.list_labels, transform=train_transforms)
-        dataloader_train = DataLoader(dataset_train, batch_size=1, shuffle=True)
+        dataset_train = SkateData(self.list_clips, self.list_labels)
+        dataloader_train = DataLoader(dataset_train, batch_size=2, shuffle=True, collate_fn=vivit_collate)
 
-        image, labels = next(iter(dataloader_train))
-        plt.imshow(image[0, 0].permute(1, 2, 0))
-        plt.show()
 
         criterion = nn.CrossEntropyLoss()
+
+        self.model.train()
         for epoch in range(epochs):
-            self.model.train()
             epoch_loss = 0
-            for image, labels in dataloader_train:
+            for clips, labels in dataloader_train:
+                labels = labels.to(self.device)
+                inputs = self.processor(clips, return_tensors="pt", do_resize=True, size=224, do_normalize=True)
+                inputs = {k: v.to(self.device) for k, v in inputs.items()}
+                logits = self.model(pixel_values=inputs["pixel_values"])
+                loss = criterion(logits, labels)
                 optimizer.zero_grad()
-                outputs = self.model(image)
-                loss = criterion(outputs, labels)
                 loss.backward()
                 optimizer.step()
                 epoch_loss += loss.item()
@@ -56,25 +59,25 @@ class TrainViViT:
         torch.save(self.model.state_dict(), "vivit_model.pt")
 
 
-    def test(self):
-        test_transforms = transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ])
-        self.model.eval()
-        dataset_test = SkateData(self.list_clips, self.list_labels, transform=test_transforms)
-        dataloader_test = DataLoader(dataset_test, batch_size=1, shuffle=True)
+    def test(self, clips, labels):
+
+        dataset_test = SkateData(clips, labels)
+        dataloader_test = DataLoader(dataset_test, batch_size=1, collate_fn=vivit_collate)
 
         metric_precision.reset()
         metric_accuracy.reset()
         metric_recall.reset()
         metric_f1.reset()
 
+        self.model.eval()
         with torch.no_grad():
-            for image, labels in dataloader_test:
-                outputs = self.model(image)
-                _, predicted = torch.max(outputs, 1)
+            for clips, labels in dataloader_test:
+                inputs = self.processor(clips, return_tensors="pt", do_resize=True, size=224, do_normalize=True)
+                inputs = {k: v.to(self.device) for k, v in inputs.items()}
+
+                logits = self.model(pixel_values=inputs["pixel_values"])
+                predicted = torch.argmax(logits, dim=-1)
+
                 metric_precision.update(predicted, labels)
                 metric_accuracy.update(predicted, labels)
                 metric_recall.update(predicted, labels)
