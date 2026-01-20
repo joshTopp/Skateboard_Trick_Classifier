@@ -17,6 +17,6 @@ class SkateData(Dataset):
         label = self.labels[idx]
 
         if self.transform:
-            clip = self.transform(clip)
+            clip = torch.stack([self.transform(frame) for frame in clip])
 
         return clip, label

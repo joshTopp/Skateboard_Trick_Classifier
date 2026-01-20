@@ -54,14 +54,13 @@ def prep_to_train_cnn(dict_frames, indices):
         for begin_index in range(0, len(board_list) - 33, 24):
             board_frames = board_list[begin_index:begin_index + 32]
             # human_frames = human_list[begin_index:begin_index + 32]
+            send_frames = []
+            for frame in board_frames:
+                frame_tensor = torch.tensor(frame).permute(2, 0, 1).float() / 255.0
+                send_frames.append(frame_tensor)
 
-            send_frames = board_frames
-
-            list_clip = np.array(send_frames)
+            list_clip = torch.stack(send_frames)
             clips.append(list_clip)
             labels.append(label)
 
-    batch_clips = torch.cat(clips, dim=0)
-    tensor_labels = torch.tensor(labels)
-
-    return batch_clips, tensor_labels
+    return clips, labels

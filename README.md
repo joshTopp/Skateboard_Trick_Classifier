@@ -22,7 +22,7 @@ lack of data.
 
 ## Dataset
  - 30 total skateboard trick videos
- - lengths of clips: 1-2 seconds (40-140 frames per clip)
+ - lengths of clips: 1-2 seconds (29-140 frames per clip)
  - Classes: kickflip, ollie, pop shuv
  - Train/test split done by video not per 32 frame clip to avoid leakage
  - Data augmentations only applied to the training dataset
@@ -71,17 +71,36 @@ Pipeline:
 
 ## Results
 
-  - ResNet: ~68.25% Accuracy on test videos
+  - ResNet:
+    - Accuracy:  0.7778
+    - Recall:  0.7778
+    - Precision:  0.7778
+    - F1:  0.7000
+    
+     <img src="confusion_matrix_resnet.png" width="300" height="300">
   - ViViT: 
+    - Accuracy:  0.8333
+    - Recall:  0.8333
+    - Precision:  0.9167
+    - F1:  0.8413
+
+    <img src="confusion_matrix_vivit.png" width="300" height="300">
+
+
   - Observations:
     1. data limitations:
-       - using only 30 videos 
+       - using only 33 videos 
     2. Human pose variability: 
     3. Temporal vs. spatial modeling
+  
+  Resnet CNN
 
-  [Bar chart of metrics for both models]
+  <img src="metrics.png" width="500" height="300">
 
-  [Matrices of the models]
+  ViViT
+
+  <img src="metrics_vivit.png" width="500" height="300">
+
 
   [Example video]
 
@@ -94,9 +113,6 @@ Pipeline:
 ---
 
 ## Future Goals
-
-  - Improve accuracy on ResNet CNN  
-
   - add more training videos 
 
   - Expand to more tricks that are more complex to classify (e.g., treflips, heelflips, 
@@ -116,3 +132,14 @@ laserflip, 3shuv, body varials, etc.)
 
 ---
 
+Input	Model	Accuracy	F1
+
+Full frame	ResNet	X	X
+
+Human pose	ResNet	X	X
+
+Board-only	ResNet	↑	↑
+
+Board-only	ViViT	↑↑	↑↑
+
+Error analysisw4
