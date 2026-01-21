@@ -132,14 +132,11 @@ laserflip, 3shuv, body varials, etc.)
 
 ---
 
-Input	Model	Accuracy	F1
-
-Full frame	ResNet	X	X
-
-Human pose	ResNet	X	X
-
-Board-only	ResNet	↑	↑
-
-Board-only	ViViT	↑↑	↑↑
+| Input	Model	|Accuracy |	F1 |
+|-------------|---------|----|
+| Full frame ResNet |	X |	X |
+| Human pose	ResNet |	X	| X |
+| Board-only	ResNet |	↑	| ↑ |
+| Board-only	ViViT	 | ↑↑ |	↑↑ |
 
 Error analysisw4
