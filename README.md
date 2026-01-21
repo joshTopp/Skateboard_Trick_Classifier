@@ -4,7 +4,7 @@ and YOLO11.
  - YOLO pose estimation for the skate and YOLO bounding boxes for the skateboard
    - MediaPipe was tested but didn't perform well in this case.
    - OpenPose is outdated, and HRNet was not need due to YOLO performance
- - Pipeline starts with a temporal CNN (ResNet), with comparison to an optimized ViViG transformer from Hugging Face.
+ - Pipeline starts with a temporal CNN (ResNet), with comparison to an optimized ViViT transformer from Hugging Face.
 
 ---
 
@@ -42,6 +42,13 @@ each skater's style in result makes pose pattens under low training data. Board-
 reduces variability and provided an increased consistency in classifying the trick. In result, 
 for this project I'm using only the board bounding boxes to help with simplicity and classification
 quality 
+
+| Input	Model	|Accuracy |	F1 |
+|-------------|---------|----|
+| Full frame ResNet |	0% |	0% |
+| Human pose	ResNet |	+10.66%	| +5.33% |
+| Board-only	ResNet |	+31.11%	| +40.66% |
+| Board-only	ViViT	 | +36.66% |	+54.79% |
 
 Pipeline:
 1. Crop using YOLO board bounding box
@@ -131,12 +138,5 @@ laserflip, 3shuv, body varials, etc.)
 [Proof of deployment]
 
 ---
-
-| Input	Model	|Accuracy |	F1 |
-|-------------|---------|----|
-| Full frame ResNet |	X |	X |
-| Human pose	ResNet |	X	| X |
-| Board-only	ResNet |	+20.45%	| +30% |
-| Board-only	ViViT	 | +5.55% |	+14.13% |
 
 Error analysisw4
