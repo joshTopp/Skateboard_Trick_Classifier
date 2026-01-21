@@ -136,7 +136,7 @@ laserflip, 3shuv, body varials, etc.)
 |-------------|---------|----|
 | Full frame ResNet |	X |	X |
 | Human pose	ResNet |	X	| X |
-| Board-only	ResNet |	↑	| ↑ |
-| Board-only	ViViT	 | ↑↑ |	↑↑ |
+| Board-only	ResNet |	+20.45%	| +30% |
+| Board-only	ViViT	 | +5.55% |	+14.13% |
 
 Error analysisw4
