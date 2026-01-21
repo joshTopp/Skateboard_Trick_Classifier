@@ -84,14 +84,14 @@ Pipeline:
     - Precision:  0.7778
     - F1:  0.7000
     
-     <img src="confusion_matrix_resnet.png" width="300" height="300">
+     <img src="Images/confusion_matrix_resnet.png" width="300" height="300">
   - ViViT: 
     - Accuracy:  0.8333
     - Recall:  0.8333
     - Precision:  0.9167
     - F1:  0.8413
 
-    <img src="confusion_matrix_vivit.png" width="300" height="300">
+    <img src="Images/confusion_matrix_vivit.png" width="300" height="300">
 
 
   - Observations:
@@ -102,11 +102,11 @@ Pipeline:
   
   Resnet CNN
 
-  <img src="metrics.png" width="500" height="300">
+  <img src="Images/metrics.png" width="500" height="300">
 
   ViViT
 
-  <img src="metrics_vivit.png" width="500" height="300">
+  <img src="Images/metrics_vivit.png" width="500" height="300">
 
 
   [Example video]
@@ -139,4 +139,4 @@ laserflip, 3shuv, body varials, etc.)
 
 ---
 
-Error analysisw4
+Error analysis
