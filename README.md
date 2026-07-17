@@ -136,7 +136,3 @@ laserflip, 3shuv, body varials, etc.)
 [Fast api visuals]
 
 [Proof of deployment]
-
----
-
-Error analysis
