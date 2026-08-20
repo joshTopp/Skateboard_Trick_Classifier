@@ -21,7 +21,7 @@ lack of data.
 ---
 
 ## Dataset
- - 30 total skateboard trick videos
+ - 33 total skateboard trick videos
  - lengths of clips: 1-2 seconds (29-140 frames per clip)
  - Classes: kickflip, ollie, pop shuv
  - Train/test split done by video not per 32 frame clip to avoid leakage
