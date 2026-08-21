@@ -1,6 +1,5 @@
 import os
 import re
-
 import cv2
 from ultralytics import YOLO
 from train.trainViViT import TrainViViT
@@ -11,17 +10,16 @@ from preprocess.preprocess_cnn import get_boarding_boxes_cnn, prep_to_train_cnn
 
 video_count = 1
 
-dict_frames = {}
 
 box_model = YOLO("yolo11n.pt")
 
 def main():
-
+    dict_frames = {}
     # pose_model = YOLO("yolo11n-pose.pt")
     # seg_model = YOLO("yolo11n-seg.pt")
     for video_filename in sorted(os.listdir("backend/videos")):
         for video in sorted(os.listdir("backend/videos/" + video_filename)):
-            get_boxes("backend/videos/"+video_filename+"/"+video, testing=True, video_label=video_filename)
+            dict_frames.update(get_boxes("backend/videos/"+video_filename+"/"+video, testing=True, video_label=video_filename))
 
     videos = list(dict_frames.keys())
     labels = [dict_frames[video]["label"] for video in videos]
@@ -37,6 +35,7 @@ def main():
 
 
 def get_boxes(video_file, testing=True, video_label=None):
+    dict_frames = {}
     global video_count
     if testing:
         dict_frames[video_count] = {}
@@ -69,10 +68,7 @@ def get_boxes(video_file, testing=True, video_label=None):
             # get the multiplier of the board results multiply it with the width and height print it
             revised_frame = get_boarding_boxes_vivit(board_results, img_height, img_length, frame)
             # cv2.imshow("Frame", revised_frame)
-            if testing:
-                dict_frames[video_count]["skateboard"].append(revised_frame)
-            else:
-                classify_frames.append(revised_frame)
+            dict_frames[video_count]["skateboard"].append(revised_frame)
             # if len(pose_results.boxes ) > 0:
             #     #same thing but with the pose results
             #     human_revised_frame = get_boarding_boxes(pose_results, img_height, img_length, frame)
@@ -91,10 +87,13 @@ def get_boxes(video_file, testing=True, video_label=None):
         dict_frames[video_count]["label"] = video_label
         dict_frames[video_count]["num_frames"] = len(dict_frames[video_count]["skateboard"])
         video_count += 1
+        return dict_frames
 
     else:
-        length_frames = len(classify_frames)
-        test_clips, test_labels = prep_to_train_cnn()
+        dict_frames[video_count]["label"] = None
+        dict_frames[video_count]["num_frames"] = len(dict_frames[video_count]["skateboard"])
+        return dict_frames
+
 
 
 if __name__ == "__main__":

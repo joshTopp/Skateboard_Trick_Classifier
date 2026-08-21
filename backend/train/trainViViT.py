@@ -23,18 +23,21 @@ def vivit_collate(batch):
     return list(clips), torch.tensor(labels)
 
 class TrainViViT:
-    def __init__(self, list_clips, list_labels):
+    def __init__(self, list_clips, list_labels=None):
         self.list_clips = list_clips
         self.list_labels = list_labels
         self.model = transformerNet.ViViTNet()
         self.processor = VivitImageProcessor.from_pretrained("google/vivit-b-16x2-kinetics400")
         self.device = torch.device("cpu")
+        self.model.load_state_dict(torch.load("vivit_model.pt"))
+        self.model.to(self.device)
+        self.model.eval()
 
 
     def training(self, epochs=5):
         optimizer = optim.AdamW([
-            {"params": self.model.classifier.parameters(), "lr": 3e-4},
-            {"params": self.model.model.vivit.encoder.layer[-8:].parameters(), "lr": 1e-4},
+            {"params": self.model.classifier.parameters(), "lr": 0.0003},
+            {"params": self.model.model.vivit.encoder.layer[-2:].parameters(), "lr": 0.0001},
         ],
         weight_decay=1e-4,)
 
@@ -63,9 +66,6 @@ class TrainViViT:
 
 
     def test(self, dict_frames, test_indices):
-        self.model.load_state_dict(torch.load("vivit_model.pt"))
-
-        self.model.eval()
 
         all_preds = []
         all_labels = []
@@ -134,3 +134,31 @@ class TrainViViT:
 
         fig, ax = confusion_matrix.plot()
         fig.savefig("confusion_matrix_vivit.png", dpi=300, bbox_inches='tight')
+
+    def eval(self, dict_frames):
+        with torch.no_grad():
+            board_list = dict_frames[0]["skateboard"]
+            video_clips_preds = []
+            all_probs = []
+            for begin_index in range(0, len(board_list), 24):
+                clips_frames = board_list[begin_index:begin_index + 32]
+                if len(clips_frames) < 32:
+                    w, h = clips_frames[0].size
+                    black_frame = Image.new("RGB", (w, h), (0, 0, 0))
+                    clips_frames.extend([black_frame] * (32 - len(clips_frames)))
+
+                inputs = self.processor(clips_frames, return_tensors="pt", do_resize=True, size=224, do_normalize=True)
+                inputs = {k: v.to(self.device) for k, v in inputs.items()}
+                logits = self.model(pixel_values=inputs["pixel_values"])
+                probs = torch.softmax(logits, dim=1)
+                pred = torch.argmax(probs, dim=1).item()
+                video_clips_preds.append(pred)
+                all_probs.append(probs)
+            if len(video_clips_preds) == 0:
+                return None, None
+
+            video_pred = max(set(video_clips_preds), key=video_clips_preds.count)
+            avg_probs = torch.stack(all_probs).mean(dim=0).squeeze()
+            confidence = avg_probs[video_pred].item()
+
+            return video_pred, confidence

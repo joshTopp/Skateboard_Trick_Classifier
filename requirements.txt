@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+opencv-python-headless
+ultralytics
+numpy
+torch
+torchvision
+torchmetrics
+transformers
+Pillow
+scikit-learn
+matplotlib
