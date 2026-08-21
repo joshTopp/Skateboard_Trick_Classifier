@@ -10,6 +10,14 @@ from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 import time
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
+from supabase import create_client
+
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_KEY = os.getenv("DATABASE_KEY")
+
+supabase = create_client(DATABASE_URL, DATABASE_KEY)
 
 model_instance = None
 #so I can only load the model once
@@ -65,7 +73,7 @@ async def send_videos(file: UploadFile = File(...)):
 
         class_index = {0: "kickflip", 1: "ollie", 2: "pop shuv"}
         predicted = class_index.get(prediction_id, "None")
-
+        response = (supabase.table("prediction_info").insert({"predicted": prediction_id, "prediction_label": predicted, "confidence_score": scores, "duration_seconds": duration, "inference_time": round(end_time - start_time, 4)})).execute()
         # later on usage for sql logging
         return {"filename": file.filename,
                 "predicted": prediction_id,
